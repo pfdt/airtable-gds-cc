@@ -115,18 +115,27 @@ function getRecords(request) {
   var viewName = request.configParams.view_name;
   var baseId = request.configParams.base_id;
   var apiKey = request.configParams.airtable_api_key;
+  var offset = 0;
+  var records = [];
+  
+  while (offset !== null) {
+    const content = fetchData(
+      "https://api.airtable.com/v0/" +
+        baseId +
+        "/" +
+        encodeURI(tableName) +
+        "?view=" +
+        encodeURI(viewName) +
+        "&offset=" +
+        offset,
+      apiKey
+    );
 
-  var content = fetchData(
-    "https://api.airtable.com/v0/" +
-      baseId +
-      "/" +
-      encodeURI(tableName) +
-      "?view=" +
-      encodeURI(viewName),
-    apiKey
-  );
-
-  var records = JSON.parse(content).records;
+    const response = JSON.parse(content);
+    records.push.apply(records, response.records);
+    Utilities.sleep(201);
+    offset = response.offset || null;
+  }
   return records || [];
 }
 
